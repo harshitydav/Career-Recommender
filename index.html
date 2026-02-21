@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Career Intelligence Engine</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h1 class="title">AI Career Intelligence Engine</h1>
+
+<div class="main-container">
+
+    <div class="card">
+        <h2>Subjects</h2>
+        <div class="checkbox-grid">
+            {% for s in subjects %}
+            <label>
+                <input type="checkbox" value="{{s}}" class="subject"> {{s}}
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Skills</h2>
+        <div class="checkbox-grid">
+            {% for s in skills %}
+            <label>
+                <input type="checkbox" value="{{s}}" class="skill"> {{s}}
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Interests</h2>
+        <div class="checkbox-grid">
+            {% for i in interests %}
+            <label>
+                <input type="checkbox" value="{{i}}" class="interest"> {{i}}
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<div class="center">
+    <button onclick="analyze()">Analyze Career Match</button>
+</div>
+
+<div class="results">
+    <h2>Top Matches</h2>
+    <div id="results"></div>
+</div>
+
+<script>
+function analyze(){
+    const subjects = [...document.querySelectorAll('.subject:checked')].map(x => x.value);
+    const skills = [...document.querySelectorAll('.skill:checked')].map(x => x.value);
+    const interests = [...document.querySelectorAll('.interest:checked')].map(x => x.value);
+
+    fetch("/match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subjects, skills, interests })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const results = document.getElementById("results");
+        results.innerHTML = "";
+
+        data.forEach(item => {
+            const card = document.createElement("div");
+            card.className = "result-card";
+
+            card.innerHTML = `
+                <div>
+                    <h3>${item.name}</h3>
+                    <div class="career-details" style="display:none; margin-top:10px; font-size:14px; color:#475569;">
+                        ${item.description}
+                    </div>
+                </div>
+                <span class="score">${item.match}</span>
+            `;
+
+            card.addEventListener("click", () => {
+                const details = card.querySelector(".career-details");
+                details.style.display =
+                    details.style.display === "none" ? "block" : "none";
+            });
+
+            results.appendChild(card);
+        });
+
+        // Clear inputs after analysis
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+    });
+}
+</script>
+
+</body>
+</html>
